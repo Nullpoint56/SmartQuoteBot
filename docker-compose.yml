@@ -1,0 +1,12 @@
+services:
+  rodof-bot:
+    build:
+      context: .
+    container_name: rodof-bot
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    working_dir: /app/src
+    command: ["python", "bot.py"]
