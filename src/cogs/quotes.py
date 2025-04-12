@@ -110,6 +110,8 @@ class QuoteCog(commands.Cog):
         if message.author.bot or any(message.content.startswith(prefix) for prefix in COMMAND_PREFIXES):
             return
 
+        app_ctx.collector.save_message(message.content.strip())
+
         ctx_text = message.content.strip()
         results = app_ctx.quote_search.query(ctx_text, top_n=1, threshold=0.5)
         if results:
