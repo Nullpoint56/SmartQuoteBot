@@ -16,7 +16,11 @@ def get_user_display(bot):
 
 @bot.event
 async def on_ready():
-    app_ctx.logger.info(f"Logged in as {get_user_display(bot)}")
+    try:
+        await bot.tree.sync()  # or use guild=Object(id=...) during dev
+        app_ctx.logger.info(f"Logged in as {get_user_display(bot)}")
+    except Exception as e:
+        app_ctx.logger.exception("Slash command sync failed:")
 
 async def main():
     app_ctx.boot()
@@ -24,7 +28,7 @@ async def main():
         async with bot:
             await load_extensions()
             await bot.start(TOKEN)
-    except Exception as e:
+    except Exception:
         app_ctx.logger.exception("Bot startup failed:")
     finally:
         app_ctx.shutdown()
