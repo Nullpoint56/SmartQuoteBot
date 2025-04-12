@@ -1,4 +1,0 @@
--r requirements.txt
-# Dev-only tools:
-pytest
-pytest-asyncio
