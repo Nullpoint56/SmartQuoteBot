@@ -20,7 +20,7 @@ class AppContext:
             json_path=self.config.paths.quotes_file,
             model_name=self.config.ai.embedding_model
         )
-        self.collector = MessageCollector(self.config.data_dir / "collected_messages.jsonl")
+        self.collector = MessageCollector(self.config.paths.data_dir / "collected_messages.jsonl")
 
     def boot(self):
         self._init_logging()
