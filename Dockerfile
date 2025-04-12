@@ -8,8 +8,8 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
 # Install dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements/prod_requirements.txt .
+RUN pip install --no-cache-dir -r prod_requirements.txt
 
 # Copy source code and assets
 COPY src/ src/

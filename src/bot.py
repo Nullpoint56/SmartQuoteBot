@@ -11,9 +11,12 @@ bot = commands.Bot(command_prefix=COMMAND_PREFIX, intents=intents)
 async def load_extensions():
     await bot.load_extension("cogs.quotes")
 
+def get_user_display(bot):
+    return str(bot.user)
+
 @bot.event
 async def on_ready():
-    app_ctx.logger.info(f"✅ Logged in as {bot.user}")
+    app_ctx.logger.info(f"✅ Logged in as {get_user_display(bot)}")
 
 async def main():
     app_ctx.boot()
