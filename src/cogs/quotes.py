@@ -107,18 +107,34 @@ class QuoteCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
-        if message.author.bot or any(message.content.startswith(prefix) for prefix in COMMAND_PREFIXES):
+        # Log every incoming message (use debug level to avoid spamming production logs)
+        app_ctx.logger.debug("on_message triggered with message: %s (author: %s)", message.content, message.author)
+
+        # Skip bot messages
+        if message.author.bot:
+            app_ctx.logger.debug("Message is from a bot. Ignoring.")
             return
 
-        app_ctx.collector.save_message(message.content.strip())
+        # Skip command messages
+        if any(message.content.startswith(prefix) for prefix in COMMAND_PREFIXES):
+            app_ctx.logger.debug("Message starts with a command prefix. Ignoring.")
+            return
 
+        # Save the message for collection
+        app_ctx.collector.save_message(message.content.strip())
+        app_ctx.logger.debug("Saved message content: %s", message.content.strip())
+
+        # Run semantic query
         ctx_text = message.content.strip()
         results = app_ctx.quote_search.query(ctx_text, top_n=1, threshold=0.5)
+
         if results:
             quote = results[0]["text"]
             await message.channel.send(f"{quote}")
-            app_ctx.logger.info("Triggered by '%s' -> responded with quote: %s", message.content, quote)
+            app_ctx.logger.info("Triggered by '%s' -> responded with quote: %s", ctx_text, quote)
         elif self.bot.user in message.mentions:
+            app_ctx.logger.debug("Bot was mentioned in message: %s", ctx_text)
+
             if "quote" in ctx_text.lower():
                 results = app_ctx.quote_search.query(ctx_text, top_n=1, threshold=0.0)
                 if results:

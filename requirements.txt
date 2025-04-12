@@ -1,12 +1,11 @@
-discord.py~=2.5.2
-python-dotenv~=1.1.0
-sentry-sdk~=2.25.1
-pydantic~=2.11.3
-pydantic-settings~=2.8.1
-discord~=2.3.2
-sentence-transformers~=4.0.2
-numpy~=2.2.4
-faiss-cpu~=1.10.0
-torch~=2.6.0
-onnx~=1.17.0
-transformers~=4.51.2
+--index-url https://pypi.org/simple
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+torch
+numpy>=1.25,<2.0
+discord.py
+faiss-cpu
+sentence-transformers
+pydantic-settings
+pydantic
+sentry-sdk
