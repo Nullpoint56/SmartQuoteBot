@@ -16,7 +16,7 @@ def get_user_display(bot):
 
 @bot.event
 async def on_ready():
-    app_ctx.logger.info(f"✅ Logged in as {get_user_display(bot)}")
+    app_ctx.logger.info(f"Logged in as {get_user_display(bot)}")
 
 async def main():
     app_ctx.boot()
@@ -25,7 +25,7 @@ async def main():
             await load_extensions()
             await bot.start(TOKEN)
     except Exception as e:
-        app_ctx.logger.exception("💥 Bot startup failed:")
+        app_ctx.logger.exception("Bot startup failed:")
     finally:
         app_ctx.shutdown()
 
