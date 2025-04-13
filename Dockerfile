@@ -15,11 +15,5 @@ RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY src/ src/
 
-# Create persistent folders (optional)
-RUN mkdir -p data logs
-
-# Preload with initial data if exists
-COPY data/ data/
-
 # Entrypoint
 CMD ["python", "src/bot.py"]
