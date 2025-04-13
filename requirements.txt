@@ -1,8 +1,7 @@
 --index-url https://pypi.org/simple
 --extra-index-url https://download.pytorch.org/whl/cpu
 
-# Compatible PyTorch version (CPU-only)
-torch==2.1.2+cpu
+torch==2.1.2
 
 # NumPy 1.24.4 is last version with numpy.distutils (needed by faiss-cpu)
 numpy==1.24.4
