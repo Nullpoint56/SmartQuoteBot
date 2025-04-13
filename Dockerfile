@@ -8,16 +8,14 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # Set working directory
 WORKDIR /app
 
-
-# Pre-copy requirements and install deps
+# Install dependencies
 COPY requirements.txt .
 RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 
-# Copy the application code
+# Copy application code
 COPY src/ src/
-COPY .env .env
 
-# Optional: Create persistent folders (can be managed via volume too)
+# Create persistent folders (optional)
 RUN mkdir -p data logs
 
 # Preload with initial data if exists
