@@ -1,25 +1,8 @@
---index-url https://pypi.org/simple
---extra-index-url https://download.pytorch.org/whl/cpu
-
-torch==2.4.0
-
-# NumPy 1.24.4 is last version with numpy.distutils (needed by faiss-cpu)
-numpy==1.24.4
-
-# discord.py (latest stable at the time of writing)
-discord.py==2.3.2
-
-# FAISS for CPU (works with numpy 1.24.x)
-faiss-cpu==1.7.4
-
-# Sentence transformers (works with torch 2.1.x)
-sentence-transformers==2.2.2
-
-# Pydantic settings layer
-pydantic-settings==2.1.0
-
-# Pydantic core
-pydantic==2.5.3
-
-# Sentry SDK
-sentry-sdk==1.43.0
+torch==2.6.0
+numpy==2.2.4
+discord.py==2.5.2
+faiss-cpu==1.10.0
+sentence-transformers==4.1.0
+pydantic-settings==2.9.1
+pydantic==2.11.3
+sentry-sdk==2.26.1

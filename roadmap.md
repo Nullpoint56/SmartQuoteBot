@@ -46,4 +46,7 @@
 ---
 
 ## CI/CD roadmap
+
+### OrangePi
+- NVME SSD upgrade
 - RKNN OS support: https://www.xda-developers.com/how-i-used-the-npu-on-my-orange-pi-5-pro-to-run-llms/
