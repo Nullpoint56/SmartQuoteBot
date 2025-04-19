@@ -2,8 +2,12 @@ version: "3.9"
 
 services:
   rodofbot:
-    image: thomas934/rodof-bot:latest
-    container_name: rodofbot
+    build:
+      context: .
+      target: dev
+    image: rodofbot:dev
+    volumes:
+      - ./src:/app/src
     environment:
       # Bot config
       - BOT__TOKEN=${BOT__TOKEN}
@@ -24,4 +28,4 @@ services:
 
       # AI
       - AI__EMBEDDING_MODEL=${AI__EMBEDDING_MODEL}
-    restart: unless-stopped
+    command: ["python", "-m", "src.bot"]
