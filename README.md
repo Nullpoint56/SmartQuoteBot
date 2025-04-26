@@ -38,7 +38,7 @@ DISCORD_TOKEN=your-bot-token-here
 BOT_PREFIX=!
 ```
 
-### 3. Build and Run with Docker (Recommended)
+### 3. Build and Run with Docker
 
 ```bash
 docker build -t smartquotebot .
