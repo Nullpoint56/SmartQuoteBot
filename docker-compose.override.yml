@@ -8,24 +8,22 @@ services:
     image: rodofbot:dev
     volumes:
       - ./src:/app/src
+
     environment:
-      # Bot config
+      # --- Bot Settings ---
       - BOT__TOKEN=${BOT__TOKEN}
       - BOT__COMMAND_PREFIX=${BOT__COMMAND_PREFIX}
 
-      # Sentry
+      # --- Sentry Settings ---
       - SENTRY__ENABLE=${SENTRY__ENABLE}
       - SENTRY__DSN=${SENTRY__DSN}
       - SENTRY__SEND_PII=${SENTRY__SEND_PII}
       - SENTRY__TRACES_SAMPLE_RATE=${SENTRY__TRACES_SAMPLE_RATE}
       - SENTRY__PROFILING_SAMPLE_RATE=${SENTRY__PROFILING_SAMPLE_RATE}
 
-      # Paths
-      - PATHS__DATA_DIR=${PATHS__DATA_DIR}
-      - PATHS__LOGS_DIR=${PATHS__LOGS_DIR}
-      - PATHS__QUOTES_FILE=${PATHS__QUOTES_FILE}
-      - PATHS__QUOTES_INDEX_FILE=${PATHS__QUOTES_INDEX_FILE}
+      # --- Vector Store Service Config ---
+      - VECTOR_STORE_SERVICE__DB_URL=${VECTOR_STORE_SERVICE__DB_URL}
+      - VECTOR_STORE_SERVICE__EMBEDDING_MODEL=${VECTOR_STORE_SERVICE__EMBEDDING_MODEL}
+      - VECTOR_STORE_SERVICE__EMBEDDING_DIMENSION=${VECTOR_STORE_SERVICE__EMBEDDING_DIMENSION}
 
-      # AI
-      - AI__EMBEDDING_MODEL=${AI__EMBEDDING_MODEL}
     command: ["python", "-m", "src.bot"]

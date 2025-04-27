@@ -3,7 +3,9 @@
 from logging.handlers import RotatingFileHandler
 import logging
 import os
+from pathlib import Path
 
+from common.config import VectorStoreServiceConfig
 from common.utils.connection_providers import PostgresConnectionProvider
 from config import AppConfig
 from sentry_sdk.integrations.logging import LoggingIntegration
@@ -26,7 +28,6 @@ class AppContext:
         """Initialize all app services."""
         self._init_logging()
         self._init_sentry()
-        self._bootstrap_data()
         self._init_ai_services()
 
     def shutdown(self):
@@ -37,7 +38,12 @@ class AppContext:
             self.vector_store_service.shutdown()
 
     def _init_logging(self):
-        os.makedirs(self.config.paths.logs_dir, exist_ok=True)
+        """Initialize logging: console + rotating file handler."""
+
+        # Determine base directory (one level above current file)
+        base_dir = Path(__file__).resolve().parents[2]  # Adjust if needed (../..)
+        logs_dir = base_dir / "logs"
+        os.makedirs(logs_dir, exist_ok=True)
 
         self.logger = logging.getLogger("rodof")
         self.logger.setLevel(logging.INFO)
@@ -46,13 +52,15 @@ class AppContext:
             "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
         )
 
+        # Console handler
         console_handler = logging.StreamHandler()
         console_handler.setFormatter(formatter)
         console_handler.stream.reconfigure(encoding="utf-8")
         self.logger.addHandler(console_handler)
 
+        # File handler
         file_handler = RotatingFileHandler(
-            self.config.paths.logs_dir / "bot.log",
+            logs_dir / "bot.log",
             maxBytes=5_000_000,
             backupCount=3
         )
@@ -78,26 +86,20 @@ class AppContext:
         else:
             self.logger.info("Sentry not enabled")
 
-    def _bootstrap_data(self):
-        """For now keep this to prepare data folders, later might move DB migration here."""
-        if not self.config.paths.data_dir.exists():
-            self.config.paths.data_dir.mkdir(parents=True, exist_ok=True)
-            self.logger.info("Created data directory")
-
-        # We might remove quotes.json handling later — not needed if purely DB
-
     def _init_ai_services(self):
         """Initialize AI related services: vector store + quote manager."""
         self.logger.info("Bootstrapping AI services...")
 
+        # Load Vector Store config from environment
+        vector_store_config = VectorStoreServiceConfig()
+
         # Connection Provider (PostgreSQL for now)
-        conn_provider: ConnectionProvider = PostgresConnectionProvider(self.config.pgvector.db_url)
+        conn_provider: ConnectionProvider = PostgresConnectionProvider(vector_store_config.db_url)
 
         # Vector Store Service
         self.vector_store_service = VectorStoreService(
             connection_provider=conn_provider,
-            model_name=self.config.ai.embedding_model,
-            dimension=self.config.ai.embedding_dimension
+            config=vector_store_config
         )
         self.vector_store_service.boot()
 
@@ -107,6 +109,7 @@ class AppContext:
         )
 
         self.logger.info("AI services initialized successfully.")
+
 
 # Singleton-style access
 app_ctx = AppContext()

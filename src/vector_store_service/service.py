@@ -2,23 +2,20 @@ from common.interfaces.connection_provider import ConnectionProvider
 from common.utils.math import l2_normalize
 from vector_store_service.embedders import SentenceTransformerEmbedder
 from vector_store_service.vector_store_factory import create_vector_store
+from common.config import VectorStoreServiceConfig
 
 
 class VectorStoreService:
     """Service for embedding texts and managing vector storage/search."""
 
-    def __init__(self, connection_provider: ConnectionProvider,
-                 model_name: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
-                 dimension: int = 384):
+    def __init__(self, connection_provider: ConnectionProvider, config: VectorStoreServiceConfig):
         """
         Args:
             connection_provider (ConnectionProvider): Object providing DB/storage connections.
-            model_name (str, optional): Embedding model name.
-            dimension (int, optional): Embedding dimension size.
+            config (VectorStoreServiceConfig): Configurations for the vector store service.
         """
         self.connection_provider = connection_provider
-        self.model_name = model_name
-        self.dimension = dimension
+        self.config = config
 
         self.embedder = None
         self.vector_store = None
@@ -28,11 +25,11 @@ class VectorStoreService:
         """Load model, connect database/storage, and initialize vector store."""
         self.conn = self.connection_provider.connect()
 
-        self.embedder = SentenceTransformerEmbedder(model_name=self.model_name)
+        self.embedder = SentenceTransformerEmbedder(model_name=self.config.embedding_model)
 
         self.vector_store = create_vector_store(
             conn=self.conn,
-            dimension=self.dimension
+            dimension=self.config.embedding_dimension
         )
 
     def shutdown(self) -> None:
@@ -67,4 +64,3 @@ class VectorStoreService:
     def delete_vector(self, id_: int) -> None:
         """Delete a vector by its ID."""
         self.vector_store.delete(id_)
-
