@@ -2,7 +2,8 @@ import random
 import discord
 from discord.ext import commands
 from discord import File
-from startup import app_ctx
+
+from app.bot.startup import app_ctx
 
 COMMAND_PREFIXES = ("!quote", "!addquote", "!removequote", "!listquotes", "!downloadquotes", "!helpme")
 

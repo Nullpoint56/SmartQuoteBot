@@ -1,32 +1,40 @@
+# src/app/startup.py
+
 from logging.handlers import RotatingFileHandler
 import logging
 import os
-import json
 
+from common.utils.connection_providers import PostgresConnectionProvider
 from config import AppConfig
 from sentry_sdk.integrations.logging import LoggingIntegration
 import sentry_sdk
 
-from utils.faiss_handler import QuoteSearch
+from app.managers.quote_manager import QuoteManager
+from common.interfaces.connection_provider import ConnectionProvider
+from vector_store_service.service import VectorStoreService
 
 
 class AppContext:
     def __init__(self):
         self.logger = None
         self.config = AppConfig()
-        self.quote_search = QuoteSearch(
-            index_path=self.config.paths.quotes_index_file,
-            json_path=self.config.paths.quotes_file,
-            model_name=self.config.ai.embedding_model
-        )
+
+        self.vector_store_service: VectorStoreService = None
+        self.quote_manager: QuoteManager = None
 
     def boot(self):
+        """Initialize all app services."""
         self._init_logging()
         self._init_sentry()
         self._bootstrap_data()
+        self._init_ai_services()
 
     def shutdown(self):
-        self.logger.info("Shutting down Rodof Bot")
+        """Gracefully shut down."""
+        self.logger.info("Shutting down Rodof Bot.")
+
+        if self.vector_store_service:
+            self.vector_store_service.shutdown()
 
     def _init_logging(self):
         os.makedirs(self.config.paths.logs_dir, exist_ok=True)
@@ -40,7 +48,7 @@ class AppContext:
 
         console_handler = logging.StreamHandler()
         console_handler.setFormatter(formatter)
-        console_handler.stream.reconfigure(encoding='utf-8')
+        console_handler.stream.reconfigure(encoding="utf-8")
         self.logger.addHandler(console_handler)
 
         file_handler = RotatingFileHandler(
@@ -71,23 +79,34 @@ class AppContext:
             self.logger.info("Sentry not enabled")
 
     def _bootstrap_data(self):
+        """For now keep this to prepare data folders, later might move DB migration here."""
         if not self.config.paths.data_dir.exists():
             self.config.paths.data_dir.mkdir(parents=True, exist_ok=True)
             self.logger.info("Created data directory")
 
-        if not self.config.paths.quotes_file.exists():
-            self.logger.warning("quotes.json not found — creating with empty list.")
-            with open(self.config.paths.quotes_file, "w", encoding="utf-8") as f:
-                json.dump([], f, indent=2)
-        else:
-            try:
-                with open(self.config.paths.quotes_file, "r", encoding="utf-8") as f:
-                    quotes = json.load(f)
-                    self.logger.info("quotes.json exists. Loaded %d quotes.", len(quotes))
-                    preview = quotes[:3]
-                    self.logger.debug("Preview: %s", preview)
-            except Exception:
-                self.logger.exception("Failed to inspect existing quotes.json:")
+        # We might remove quotes.json handling later — not needed if purely DB
+
+    def _init_ai_services(self):
+        """Initialize AI related services: vector store + quote manager."""
+        self.logger.info("Bootstrapping AI services...")
+
+        # Connection Provider (PostgreSQL for now)
+        conn_provider: ConnectionProvider = PostgresConnectionProvider(self.config.pgvector.db_url)
+
+        # Vector Store Service
+        self.vector_store_service = VectorStoreService(
+            connection_provider=conn_provider,
+            model_name=self.config.ai.embedding_model,
+            dimension=self.config.ai.embedding_dimension
+        )
+        self.vector_store_service.boot()
+
+        # Quote Manager
+        self.quote_manager = QuoteManager(
+            vector_store_service=self.vector_store_service
+        )
+
+        self.logger.info("AI services initialized successfully.")
 
 # Singleton-style access
 app_ctx = AppContext()
