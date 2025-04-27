@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
 from common.interfaces.vector_store import VectorStore
-from vector_stores.postgres import PgVectorVectorStore
+from vector_store_service.vector_stores.postgres import PgVectorVectorStore
 
 if TYPE_CHECKING:
     from typing import Any

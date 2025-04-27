@@ -1,6 +1,6 @@
 from common.interfaces.connection_provider import ConnectionProvider
 from common.utils.math import l2_normalize
-from vector_store_service import SentenceTransformerEmbedder
+from vector_store_service.embedders import SentenceTransformerEmbedder
 from vector_store_service.vector_store_factory import create_vector_store
 
 
