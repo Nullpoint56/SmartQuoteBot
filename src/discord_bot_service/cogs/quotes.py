@@ -3,9 +3,10 @@ import discord
 from discord.ext import commands
 from discord import File
 
-from app.bot.startup import app_ctx
+from discord_bot_service.bot.startup import app_ctx
 
 COMMAND_PREFIXES = ("!quote", "!addquote", "!removequote", "!listquotes", "!downloadquotes", "!helpme")
+NEED_ADMIN_PERMISSION_MESSAGE = "You need to be an admin to use this."
 
 class QuoteCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -32,7 +33,7 @@ class QuoteCog(commands.Cog):
     @commands.command(name="removequote", help="Remove a quote (admin only)")
     async def remove_quote(self, ctx: commands.Context, idx: str):
         if not ctx.author.guild_permissions.administrator:
-            await ctx.send("You need to be an admin to use this.", ephemeral=True)
+            await ctx.send(NEED_ADMIN_PERMISSION_MESSAGE, ephemeral=True)
             return
 
         if not idx.isdigit():
@@ -51,7 +52,7 @@ class QuoteCog(commands.Cog):
     @commands.command(name="listquotes", help="List all quotes (admin only)")
     async def list_quotes(self, ctx: commands.Context):
         if not ctx.author.guild_permissions.administrator:
-            await ctx.send("You need to be an admin to use this.", ephemeral=True)
+            await ctx.send(NEED_ADMIN_PERMISSION_MESSAGE, ephemeral=True)
             return
 
         quotes = app_ctx.quote_search.list_quotes()
@@ -68,7 +69,7 @@ class QuoteCog(commands.Cog):
     @commands.command(name="downloadquotes", help="Download quotes.json (admin only)")
     async def download_quotes(self, ctx: commands.Context):
         if not ctx.author.guild_permissions.administrator:
-            await ctx.send("You need to be an admin to use this.", ephemeral=True)
+            await ctx.send(NEED_ADMIN_PERMISSION_MESSAGE, ephemeral=True)
             return
 
         if not app_ctx.quote_search.json_path.exists():

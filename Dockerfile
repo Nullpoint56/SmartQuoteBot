@@ -1,5 +1,5 @@
 # === Base image ===
-FROM python:3.11-slim as base
+FROM python:3.11-slim AS base
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
@@ -9,14 +9,17 @@ COPY requirements.txt .
 RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 
 # === Dev image ===
-FROM base as dev
-# (Optional: install dev tools here)
-# RUN pip install --no-cache-dir debugpy watchdog ipython
+FROM base AS dev
+
 ENV ENV=development
-CMD ["python", "-m", "src.bot"]
+
+# Install debug/reload tools
+RUN pip install --no-cache-dir debugpy watchdog
+
+CMD ["watchmedo", "auto-restart", "--directory=src/", "--pattern=*.py", "--recursive", "--", "python", "-m", "src.main"]
 
 # === Production image ===
-FROM base as prod
+FROM base AS prod
 COPY src/ src/
 ENV ENV=production
-CMD ["python", "src/bot.py"]
+CMD ["python", "src/main.py"]

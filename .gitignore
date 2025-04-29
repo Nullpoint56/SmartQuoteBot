@@ -2,3 +2,7 @@
 invite_link.txt
 data
 logs
+/ai_processing/output_data
+/ai_processing/rknn_model
+/ai_processing/input_data/
+.docker-cache/

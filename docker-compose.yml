@@ -1,9 +1,9 @@
 version: "3.9"
 
 services:
-  rodofbot:
-    image: thomas934/rodof-bot:latest
-    container_name: rodofbot
+  smartquotebot:
+    image: thomas934/smartquotebot:latest  # <-- lowercase repo name (Docker Hub requires lowercase!)
+    container_name: smartquotebot
     environment:
       # Bot config
       - BOT__TOKEN=${BOT__TOKEN}
@@ -24,4 +24,26 @@ services:
 
       # AI
       - AI__EMBEDDING_MODEL=${AI__EMBEDDING_MODEL}
+
+    depends_on:
+      - pgvector-db
     restart: unless-stopped
+    networks:
+      - rodofbot-network
+
+  pgvector-db:
+    image: pgvector/pgvector:latest
+    container_name: pgvector-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: vectorstore
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    networks:
+      - rodofbot-network
+
+networks:
+  rodofbot-network:
+    driver: bridge

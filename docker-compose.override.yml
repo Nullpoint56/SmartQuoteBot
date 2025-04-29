@@ -1,29 +1,66 @@
 version: "3.9"
 
 services:
-  rodofbot:
+  smartquotebot:
     build:
       context: .
-      target: dev
-    image: rodofbot:dev
+      dockerfile: Dockerfile
+      target: dev  # optional, if you have a "dev" stage
+      cache_from:
+        - type=local,src=./.docker-cache
+    image: smartquotebot:dev
+    container_name: smartquotebot
     volumes:
-      - ./src:/app/src
-
+      - ./src:/app/src  # <-- Live bind-mount local src/ over container src/
     environment:
-      # --- Bot Settings ---
+      # Bot config
       - BOT__TOKEN=${BOT__TOKEN}
       - BOT__COMMAND_PREFIX=${BOT__COMMAND_PREFIX}
 
-      # --- Sentry Settings ---
+      # Sentry
       - SENTRY__ENABLE=${SENTRY__ENABLE}
       - SENTRY__DSN=${SENTRY__DSN}
       - SENTRY__SEND_PII=${SENTRY__SEND_PII}
       - SENTRY__TRACES_SAMPLE_RATE=${SENTRY__TRACES_SAMPLE_RATE}
       - SENTRY__PROFILING_SAMPLE_RATE=${SENTRY__PROFILING_SAMPLE_RATE}
 
-      # --- Vector Store Service Config ---
-      - VECTOR_STORE_SERVICE__DB_URL=${VECTOR_STORE_SERVICE__DB_URL}
-      - VECTOR_STORE_SERVICE__EMBEDDING_MODEL=${VECTOR_STORE_SERVICE__EMBEDDING_MODEL}
-      - VECTOR_STORE_SERVICE__EMBEDDING_DIMENSION=${VECTOR_STORE_SERVICE__EMBEDDING_DIMENSION}
+      # Paths
+      - PATHS__DATA_DIR=${PATHS__DATA_DIR}
+      - PATHS__LOGS_DIR=${PATHS__LOGS_DIR}
+      - PATHS__QUOTES_FILE=${PATHS__QUOTES_FILE}
+      - PATHS__QUOTES_INDEX_FILE=${PATHS__QUOTES_INDEX_FILE}
 
-    command: ["python", "-m", "src.bot"]
+      # AI
+      - AI__EMBEDDING_MODEL=${AI__EMBEDDING_MODEL}
+
+      # Database (for VectorStoreService)
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+
+    depends_on:
+      - pgvector-db
+
+    restart: unless-stopped
+    networks:
+      - rodofbot-network
+
+  # Add this new service:
+  pgvector-db:
+    image: pgvector/pgvector:latest
+    container_name: pgvector-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: vectorstore
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    networks:
+      - rodofbot-network
+
+networks:
+  rodofbot-network:
+    driver: bridge

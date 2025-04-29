@@ -1,21 +1,38 @@
-from typing import List, Dict
+from typing import List, Dict, Optional
 import numpy as np
 import psycopg
 
-class PgVectorVectorStore:
+from common.interfaces.vector_store import VectorStore
+
+
+class PgVectorVectorStore(VectorStore):
     """Vector store using PostgreSQL with pgvector extension, pure psycopg3."""
 
-    def __init__(self, conn: psycopg.Connection, dimension: int = 384):
+    def __init__(self, dimension: int = 384):
         """
+        Prepare the vector store.
+
         Args:
-            conn (psycopg.Connection): psycopg3 DB connection.
-            dimension (int): Dimension of the embeddings.
+            dimension (int): Embedding dimension.
         """
-        self.conn = conn
         self.dimension = dimension
+        self.conn: Optional[psycopg.Connection] = None
+
+    def boot(self, conn: psycopg.Connection) -> None:
+        """Inject the database connection."""
+        self.conn = conn
 
     def add(self, embeddings: np.ndarray, metadatas: List[Dict]) -> None:
         """Add embeddings and associated metadata to the vector store."""
+        self._check_connection()
+
+        # 🔥 Validate embedding dimensions
+        if embeddings.ndim != 2 or embeddings.shape[1] != self.dimension:
+            raise ValueError(
+                f"Invalid embedding dimensions: expected (*, {self.dimension}), "
+                f"got {embeddings.shape}."
+            )
+
         with self.conn.cursor() as cur:
             for embedding, metadata in zip(embeddings, metadatas):
                 cur.execute(
@@ -33,6 +50,14 @@ class PgVectorVectorStore:
 
     def search(self, embedding: np.ndarray, top_n: int = 3) -> List[Dict]:
         """Search for the top-N most similar vectors given an input embedding."""
+        self._check_connection()
+
+        if embedding.ndim != 2 or embedding.shape[1] != self.dimension:
+            raise ValueError(
+                f"Invalid query embedding dimensions: expected (*, {self.dimension}), "
+                f"got {embedding.shape}."
+            )
+
         with self.conn.cursor(row_factory=psycopg.rows.dict_row) as cur:
             query_embedding = list(embedding[0])
 
@@ -55,6 +80,8 @@ class PgVectorVectorStore:
 
     def delete(self, id_: int) -> None:
         """Delete a vector by its ID."""
+        self._check_connection()
+
         with self.conn.cursor() as cur:
             cur.execute(
                 """
@@ -67,6 +94,13 @@ class PgVectorVectorStore:
 
     def reset(self) -> None:
         """Reset (delete) all vectors in the database."""
+        self._check_connection()
+
         with self.conn.cursor() as cur:
             cur.execute("DELETE FROM vectors")
             self.conn.commit()
+
+    def _check_connection(self) -> None:
+        """Ensure that the connection has been initialized."""
+        if self.conn is None:
+            raise RuntimeError("Database connection not initialized. Call boot(conn) first.")

@@ -1,17 +1,16 @@
-# src/app/startup.py
+# src/discord_bot_service/startup.py
 
 from logging.handlers import RotatingFileHandler
 import logging
 import os
 from pathlib import Path
 
-from common.config import VectorStoreServiceConfig
+from common.config import VectorStoreServiceConfig, AppConfig
 from common.utils.connection_providers import PostgresConnectionProvider
-from config import AppConfig
 from sentry_sdk.integrations.logging import LoggingIntegration
 import sentry_sdk
 
-from app.managers.quote_manager import QuoteManager
+from discord_bot_service.managers.quote_manager import QuoteManager
 from common.interfaces.connection_provider import ConnectionProvider
 from vector_store_service.service import VectorStoreService
 
@@ -25,10 +24,10 @@ class AppContext:
         self.quote_manager: QuoteManager = None
 
     def boot(self):
-        """Initialize all app services."""
+        """Initialize all discord_bot_service services."""
         self._init_logging()
         self._init_sentry()
-        self._init_ai_services()
+        self._init_vector_store_services()
 
     def shutdown(self):
         """Gracefully shut down."""
@@ -40,13 +39,22 @@ class AppContext:
     def _init_logging(self):
         """Initialize logging: console + rotating file handler."""
 
-        # Determine base directory (one level above current file)
-        base_dir = Path(__file__).resolve().parents[2]  # Adjust if needed (../..)
+        # Determine base directory (safely climb up 2 levels)
+        base_dir = Path(__file__).resolve()
+        for _ in range(2):
+            if base_dir.parent != base_dir:
+                base_dir = base_dir.parent
+            else:
+                break
         logs_dir = base_dir / "logs"
         os.makedirs(logs_dir, exist_ok=True)
 
         self.logger = logging.getLogger("rodof")
         self.logger.setLevel(logging.INFO)
+
+        # Clear previous handlers to avoid duplicates
+        if self.logger.hasHandlers():
+            self.logger.handlers.clear()
 
         formatter = logging.Formatter(
             "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
@@ -55,7 +63,10 @@ class AppContext:
         # Console handler
         console_handler = logging.StreamHandler()
         console_handler.setFormatter(formatter)
-        console_handler.stream.reconfigure(encoding="utf-8")
+        try:
+            console_handler.stream.reconfigure(encoding="utf-8")
+        except AttributeError:
+            pass
         self.logger.addHandler(console_handler)
 
         # File handler
@@ -86,9 +97,9 @@ class AppContext:
         else:
             self.logger.info("Sentry not enabled")
 
-    def _init_ai_services(self):
-        """Initialize AI related services: vector store + quote manager."""
-        self.logger.info("Bootstrapping AI services...")
+    def _init_vector_store_services(self):
+        """Initialize Vector Store service."""
+        self.logger.info("Bootstrapping Vector Store service...")
 
         # Load Vector Store config from environment
         vector_store_config = VectorStoreServiceConfig()
@@ -108,7 +119,7 @@ class AppContext:
             vector_store_service=self.vector_store_service
         )
 
-        self.logger.info("AI services initialized successfully.")
+        self.logger.info("Vector Store service initialized successfully.")
 
 
 # Singleton-style access
