@@ -1,9 +1,52 @@
+# ========================
+# Python
+# ========================
 __pycache__/
-*.pyc
+*.py[cod]
 *.pyo
 *.pyd
+*.pyc
+
+# ========================
+# Virtual environments
+# ========================
+.venv/
+env/
+venv/
+
+# ========================
+# Logs and runtime
+# ========================
 *.log
+logs/
 *.sqlite3
+
+# ========================
+# Local data and models
+# ========================
+data/
+ai_processing/input_data/
+ai_processing/output_data/
+ai_processing/rknn_model/
+*.ipynb
+
+# ========================
+# Docker & system files
+# ========================
+.docker-cache/
+docker-compose.override.yml
+dummy.env
+
+# ========================
+# Git and IDE files
+# ========================
+.git/
+.gitignore
 .vscode/
 .idea/
+
+# ========================
+# Env files
+# ========================
 .env
+.env.*

@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   smartquotebot:
     build:
@@ -13,6 +11,7 @@ services:
     volumes:
       - ./src:/app/src  # <-- Live bind-mount local src/ over container src/
     environment:
+      - PYTHONPATH=/app/src
       # Bot config
       - BOT__TOKEN=${BOT__TOKEN}
       - BOT__COMMAND_PREFIX=${BOT__COMMAND_PREFIX}
@@ -25,10 +24,7 @@ services:
       - SENTRY__PROFILING_SAMPLE_RATE=${SENTRY__PROFILING_SAMPLE_RATE}
 
       # Paths
-      - PATHS__DATA_DIR=${PATHS__DATA_DIR}
       - PATHS__LOGS_DIR=${PATHS__LOGS_DIR}
-      - PATHS__QUOTES_FILE=${PATHS__QUOTES_FILE}
-      - PATHS__QUOTES_INDEX_FILE=${PATHS__QUOTES_INDEX_FILE}
 
       # AI
       - AI__EMBEDDING_MODEL=${AI__EMBEDDING_MODEL}
@@ -49,7 +45,7 @@ services:
 
   # Add this new service:
   pgvector-db:
-    image: pgvector/pgvector:latest
+    image: ankane/pgvector
     container_name: pgvector-db
     environment:
       POSTGRES_USER: postgres

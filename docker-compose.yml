@@ -1,10 +1,9 @@
-version: "3.9"
-
 services:
   smartquotebot:
     image: thomas934/smartquotebot:latest  # <-- lowercase repo name (Docker Hub requires lowercase!)
     container_name: smartquotebot
     environment:
+      - PYTHONPATH=/app/src
       # Bot config
       - BOT__TOKEN=${BOT__TOKEN}
       - BOT__COMMAND_PREFIX=${BOT__COMMAND_PREFIX}
@@ -17,10 +16,7 @@ services:
       - SENTRY__PROFILING_SAMPLE_RATE=${SENTRY__PROFILING_SAMPLE_RATE}
 
       # Paths
-      - PATHS__DATA_DIR=${PATHS__DATA_DIR}
       - PATHS__LOGS_DIR=${PATHS__LOGS_DIR}
-      - PATHS__QUOTES_FILE=${PATHS__QUOTES_FILE}
-      - PATHS__QUOTES_INDEX_FILE=${PATHS__QUOTES_INDEX_FILE}
 
       # AI
       - AI__EMBEDDING_MODEL=${AI__EMBEDDING_MODEL}
