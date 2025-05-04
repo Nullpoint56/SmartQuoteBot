@@ -2,3 +2,9 @@
 invite_link.txt
 data
 logs
+/.idea/.gitignore
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/inspectionProfiles/profiles_settings.xml
+/.idea/SmartQuoteBot.iml
+/.idea/vcs.xml
