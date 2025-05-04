@@ -22,31 +22,31 @@ class SentrySettings(BaseModel):
 
 class PathSettings(BaseModel):
     base_dir: Path = Field(default_factory=lambda: Path(__file__).resolve().parents[1])
-    data_dir: Optional[Path] = Field(default=None, validation_alias="DATA_DIR")
     logs_dir: Optional[Path] = Field(default=None, validation_alias="LOGS_DIR")
-    quotes_file: Optional[Path] = Field(default=None, validation_alias="QUOTES_FILE")
-    quotes_index_file: Optional[Path] = Field(default=None, validation_alias="QUOTES_INDEX_FILE")
 
     def resolve_defaults(self):
-        if self.data_dir is None:
-            self.data_dir = self.base_dir / "data"
         if self.logs_dir is None:
             self.logs_dir = self.base_dir / "logs"
-        if self.quotes_file is None:
-            self.quotes_file = self.data_dir / "quotes.json"
-        if self.quotes_index_file is None:
-            self.quotes_index_file = self.data_dir / "quotes.index"
+
+class VectorStoreSettings(BaseModel):
+    host: str = Field(default="localhost")
+    port: int = Field(default=5432)
+    dbname: str = Field(default="mydb")
+    user: str = Field(default="myuser")
+    password: str = Field(default="mypassword")
+    dimension: int = Field(default=384)
 
 
-class AISettings(BaseModel):
-    embedding_model: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+class EmbedderSettings(BaseModel):
+    model_name: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
 
 
 class AppConfig(BaseSettings):
     bot: BotSettings
     sentry: SentrySettings = SentrySettings()
     paths: PathSettings = PathSettings()
-    ai: AISettings = AISettings()
+    embedder: EmbedderSettings = EmbedderSettings()
+    vector_store: VectorStoreSettings = VectorStoreSettings()
 
     def model_post_init(self, __context):
         self.paths.resolve_defaults()

@@ -1,7 +1,8 @@
 import asyncio
 import discord
 from discord.ext import commands
-from startup import app_ctx
+
+from src.startup import app_ctx
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -11,7 +12,7 @@ bot = commands.Bot(command_prefix=app_ctx.config.bot.command_prefix, intents=int
 
 async def load_extensions():
     try:
-        await bot.load_extension("cogs.quotes")
+        await bot.load_extension("src.cogs.quotes")
         app_ctx.logger.info("Loaded extension: cogs.quotes")
     except Exception:
         app_ctx.logger.exception("Failed to load extension: cogs.quotes")

@@ -1,9 +1,46 @@
+# Byte-compiled / cache files
 __pycache__/
-*.pyc
+*.py[cod]
 *.pyo
 *.pyd
+
+# Log files
 *.log
+
+# SQLite and other local DBs
 *.sqlite3
+
+# Environment files
+dummy.env
+
+# IDEs / Editors
 .vscode/
 .idea/
-.env
+*.swp
+*.swo
+
+# Notebooks (optional, since they're not needed in containers)
+*.ipynb
+
+# System / OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Docs (excluded from builds unless needed)
+docs/
+
+# Local build/test data
+ai.processing/input_data/
+ai.processing/output_data/
+
+# Exclude virtualenvs
+.venv/
+env/
+venv/
+
+# Exclude README if not used in container
+README.md

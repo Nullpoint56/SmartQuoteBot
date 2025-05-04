@@ -5,7 +5,7 @@ services:
     image: thomas934/rodof-bot:latest
     container_name: rodofbot
     environment:
-      # Bot config
+      # Bot
       - BOT__TOKEN=${BOT__TOKEN}
       - BOT__COMMAND_PREFIX=${BOT__COMMAND_PREFIX}
 
@@ -17,11 +17,32 @@ services:
       - SENTRY__PROFILING_SAMPLE_RATE=${SENTRY__PROFILING_SAMPLE_RATE}
 
       # Paths
-      - PATHS__DATA_DIR=${PATHS__DATA_DIR}
       - PATHS__LOGS_DIR=${PATHS__LOGS_DIR}
-      - PATHS__QUOTES_FILE=${PATHS__QUOTES_FILE}
-      - PATHS__QUOTES_INDEX_FILE=${PATHS__QUOTES_INDEX_FILE}
 
-      # AI
-      - AI__EMBEDDING_MODEL=${AI__EMBEDDING_MODEL}
+      # Embedder
+      - EMBEDDER__MODEL_NAME=${EMBEDDER__MODEL_NAME}
+
+      # Vector Store DB
+      - VECTOR_STORE__HOST=pgvector
+      - VECTOR_STORE__PORT=5432
+      - VECTOR_STORE__DBNAME=${VECTOR_STORE__DBNAME}
+      - VECTOR_STORE__USER=${VECTOR_STORE__USER}
+      - VECTOR_STORE__PASSWORD=${VECTOR_STORE__PASSWORD}
+      - VECTOR_STORE__DIMENSION=${VECTOR_STORE__DIMENSION}
+    depends_on:
+      - pgvector
     restart: unless-stopped
+
+  pgvector:
+    image: pgvector/pgvector
+    container_name: pgvector
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${VECTOR_STORE__DBNAME}
+      POSTGRES_USER: ${VECTOR_STORE__USER}
+      POSTGRES_PASSWORD: ${VECTOR_STORE__PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

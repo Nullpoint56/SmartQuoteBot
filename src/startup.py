@@ -1,29 +1,33 @@
 from logging.handlers import RotatingFileHandler
 import logging
 import os
-import json
-
-from config import AppConfig
+from psycopg import connect
 from sentry_sdk.integrations.logging import LoggingIntegration
 import sentry_sdk
 
-from utils.faiss_handler import QuoteSearch
+from src.config import AppConfig
+from src.utils.QuoteManager import QuoteManager
+from src.utils.embedder import SentenceTransformerEmbedder
+from src.utils.vector_store import PgVectorStore
 
 
 class AppContext:
     def __init__(self):
         self.logger = None
-        self.config = AppConfig()
-        self.quote_search = QuoteSearch(
-            index_path=self.config.paths.quotes_index_file,
-            json_path=self.config.paths.quotes_file,
-            model_name=self.config.ai.embedding_model
-        )
+        self.config: AppConfig = AppConfig()
+        self.vector_store: PgVectorStore = None
+        self.embedder: SentenceTransformerEmbedder = None
+        self.quote_manager: QuoteManager = None
 
     def boot(self):
-        self._init_logging()
-        self._init_sentry()
-        self._bootstrap_data()
+        try:
+            self._init_logging()
+            self._init_sentry()
+            self._init_vector_db()
+            self._init_embedder()
+            self._init_quote_manager()
+        except Exception as e:
+            print(f"An Exception occurred while booting the bot: {e}")
 
     def shutdown(self):
         self.logger.info("Shutting down Rodof Bot")
@@ -70,24 +74,32 @@ class AppContext:
         else:
             self.logger.info("Sentry not enabled")
 
-    def _bootstrap_data(self):
-        if not self.config.paths.data_dir.exists():
-            self.config.paths.data_dir.mkdir(parents=True, exist_ok=True)
-            self.logger.info("Created data directory")
+    def _init_vector_db(self):
+        cfg = self.config.vector_store
+        try:
+            conn = connect(
+                host=cfg.host,
+                port=cfg.port,
+                dbname=cfg.dbname,
+                user=cfg.user,
+                password=cfg.password,
+            )
+            self.vector_store = PgVectorStore(connection=conn, dimension=cfg.dimension)
+            self.logger.info("Vector store initialized")
+        except Exception as e:
+            self.logger.error("Failed to initialize vector store", exc_info=e)
+            raise
 
-        if not self.config.paths.quotes_file.exists():
-            self.logger.warning("quotes.json not found — creating with empty list.")
-            with open(self.config.paths.quotes_file, "w", encoding="utf-8") as f:
-                json.dump([], f, indent=2)
-        else:
-            try:
-                with open(self.config.paths.quotes_file, "r", encoding="utf-8") as f:
-                    quotes = json.load(f)
-                    self.logger.info("quotes.json exists. Loaded %d quotes.", len(quotes))
-                    preview = quotes[:3]
-                    self.logger.debug("Preview: %s", preview)
-            except Exception:
-                self.logger.exception("Failed to inspect existing quotes.json:")
+    def _init_embedder(self):
+        self.embedder = SentenceTransformerEmbedder(self.config.embedder.model_name)
+        self.embedder.boot()
+        self.logger.info("Embedder model loaded")
+
+    def _init_quote_manager(self):
+        self.quote_manager = QuoteManager(
+            vector_store=self.vector_store,
+            embedder=self.embedder,
+        )
 
 # Singleton-style access
 app_ctx = AppContext()

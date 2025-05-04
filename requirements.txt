@@ -1,4 +1,4 @@
-torch==2.6.0
+torch==2.6.0+cpu
 numpy==2.2.4
 discord.py==2.5.2
 faiss-cpu==1.10.0
@@ -6,3 +6,7 @@ sentence-transformers==4.1.0
 pydantic-settings==2.9.1
 pydantic==2.11.3
 sentry-sdk==2.26.1
+psycopg~=3.2.7
+
+# Use extra index URL for CPU torch wheels
+--extra-index-url https://download.pytorch.org/whl/cpu

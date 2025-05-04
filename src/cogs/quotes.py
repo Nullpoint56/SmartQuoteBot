@@ -1,19 +1,22 @@
+import json
 import random
+from io import BytesIO
+
 import discord
 from discord.ext import commands
-from discord import File
-from startup import app_ctx
+
+from src.startup import app_ctx
 
 COMMAND_PREFIXES = ("!quote", "!addquote", "!removequote", "!listquotes", "!downloadquotes", "!helpme")
 
 class QuoteCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        app_ctx.logger.info("QuoteCog loaded. Quotes loaded: %d", len(app_ctx.quote_search.list_quotes()))
+        app_ctx.logger.info("QuoteCog loaded. Quotes loaded: %d", app_ctx.quote_manager.count_quotes())
 
     @commands.command(name="quote", help="Get a random quote")
     async def quote(self, ctx: commands.Context):
-        quotes = app_ctx.quote_search.list_quotes()
+        quotes = app_ctx.quote_manager.list_quotes()
         if not quotes:
             await ctx.send("No quotes available!")
             app_ctx.logger.info("User %s tried to get a quote but none exist.", ctx.author)
@@ -24,7 +27,7 @@ class QuoteCog(commands.Cog):
 
     @commands.command(name="addquote", help="Add a quote")
     async def add_quote(self, ctx: commands.Context, *, quote: str):
-        app_ctx.quote_search.add_quote(text=quote)
+        app_ctx.quote_manager.add_quote(text=quote)
         await ctx.send(f"Added quote: '{quote}'", ephemeral=True)
         app_ctx.logger.info("User %s added quote: %s", ctx.author, quote)
 
@@ -40,7 +43,7 @@ class QuoteCog(commands.Cog):
 
         try:
             real_index = int(idx) - 1
-            app_ctx.quote_search.remove_quote(real_index)
+            app_ctx.quote_manager.remove_quote(real_index)
             await ctx.send(f"🗑Removed quote at index {idx}.", ephemeral=True)
             app_ctx.logger.info("Admin %s removed quote at index: %s", ctx.author, idx)
         except Exception as e:
@@ -53,7 +56,7 @@ class QuoteCog(commands.Cog):
             await ctx.send("You need to be an admin to use this.", ephemeral=True)
             return
 
-        quotes = app_ctx.quote_search.list_quotes()
+        quotes = app_ctx.quote_manager.list_quotes()
         if not quotes:
             await ctx.send("No quotes yet.", ephemeral=True)
             app_ctx.logger.info("Admin %s requested quote list, but it's empty.", ctx.author)
@@ -64,26 +67,22 @@ class QuoteCog(commands.Cog):
             await ctx.send(f"Quotes:\n```{formatted}```", ephemeral=True)
             app_ctx.logger.info("Admin %s listed quotes.", ctx.author)
 
-    @commands.command(name="downloadquotes", help="Download quotes.json (admin only)")
+    @commands.command(name="downloadquotes", help="Download quotes (admin only)")
     async def download_quotes(self, ctx: commands.Context):
         if not ctx.author.guild_permissions.administrator:
             await ctx.send("You need to be an admin to use this.", ephemeral=True)
             return
 
-        if not app_ctx.quote_search.json_path.exists():
-            await ctx.send("No quotes file found to download.", ephemeral=True)
-            app_ctx.logger.warning("Admin %s tried to download quotes but file was missing.", ctx.author)
+        quotes = app_ctx.quote_manager.list_quotes()
+        if not quotes:
+            await ctx.send("No quotes available.", ephemeral=True)
             return
 
-        try:
-            await ctx.send(file=File(app_ctx.quote_search.json_path, filename="quotes.json"), ephemeral=True)
-            app_ctx.logger.info("Admin %s downloaded the quotes file.", ctx.author)
-        except discord.Forbidden:
-            await ctx.send("Couldn't send file. Check bot permissions.", ephemeral=True)
-            app_ctx.logger.warning("Admin %s tried to download quotes but file failed.", ctx.author)
-        except Exception:
-            app_ctx.logger.exception("Failed to send quotes.json to admin:")
-            await ctx.send("Failed to send quotes file.", ephemeral=True)
+        content = json.dumps(quotes, indent=2).encode("utf-8")
+        buffer = BytesIO(content)
+        buffer.name = "quotes.json"  # Required by discord.File
+
+        await ctx.send(file=discord.File(buffer), ephemeral=True)
 
     @commands.command(name="helpme", help="Show help info for RodofBot")
     async def rodof_help(self, ctx: commands.Context):
@@ -126,7 +125,7 @@ class QuoteCog(commands.Cog):
 
         # Run semantic query
         ctx_text = message.content.strip()
-        results = app_ctx.quote_search.query(ctx_text, top_n=1, threshold=0.5)
+        results = app_ctx.quote_manager.query(ctx_text, top_n=1, threshold=0.5)
 
         if results:
             quote = results[0]["text"]
@@ -136,7 +135,7 @@ class QuoteCog(commands.Cog):
             app_ctx.logger.debug("Bot was mentioned in message: %s", ctx_text)
 
             if "quote" in ctx_text.lower():
-                results = app_ctx.quote_search.query(ctx_text, top_n=1, threshold=0.0)
+                results = app_ctx.quote_manager.query(ctx_text, top_n=1, threshold=0.0)
                 if results:
                     await message.channel.send(results[0]["text"])
                 else:
