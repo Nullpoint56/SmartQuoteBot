@@ -18,6 +18,7 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 
 # === Dev image ===
 FROM base AS dev
+COPY src/ src/
 ENV ENV=development
 CMD ["python", "-m", "src.bot"]
 
