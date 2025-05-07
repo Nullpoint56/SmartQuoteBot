@@ -33,8 +33,19 @@ async def on_ready():
 
 @bot.event
 async def on_command_error(ctx, error):
-    app_ctx.logger.exception("Unhandled command error: %s", error)
-    await ctx.send("An error occurred.")
+    if isinstance(error, commands.CommandNotFound):
+        # Quietly ignore unknown commands
+        app_ctx.logger.debug("Ignored unknown command: %s", ctx.message.content)
+        return
+    elif isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send("You're missing some required input.")
+    elif isinstance(error, commands.CheckFailure):
+        await ctx.send("You don’t have permission to use this command.")
+    else:
+        # Unexpected error from a valid command
+        app_ctx.logger.exception("Unhandled command error: %s", error)
+        await ctx.send("An error occurred while processing the command.")
+
 
 
 async def main():
