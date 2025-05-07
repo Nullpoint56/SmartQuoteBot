@@ -5,9 +5,11 @@ from io import BytesIO
 import discord
 from discord.ext import commands
 
+from src.discord_bot.ui import QuotePaginator
 from src.startup import app_ctx
 
 COMMAND_PREFIXES = ("!quote", "!addquote", "!removequote", "!listquotes", "!downloadquotes", "!helpme")
+
 
 class QuoteCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -42,8 +44,7 @@ class QuoteCog(commands.Cog):
             return
 
         try:
-            real_index = int(idx) - 1
-            app_ctx.quote_manager.remove_quote(real_index)
+            app_ctx.quote_manager.remove_quote_by_id(idx)
             await ctx.send(f"🗑Removed quote at index {idx}.", ephemeral=True)
             app_ctx.logger.info("Admin %s removed quote at index: %s", ctx.author, idx)
         except Exception as e:
@@ -59,13 +60,11 @@ class QuoteCog(commands.Cog):
         quotes = app_ctx.quote_manager.list_quotes()
         if not quotes:
             await ctx.send("No quotes yet.", ephemeral=True)
-            app_ctx.logger.info("Admin %s requested quote list, but it's empty.", ctx.author)
-        else:
-            formatted = "\n".join([f"{i + 1}. {q['text']}" for i, q in enumerate(quotes)])
-            if len(formatted) > 1900:
-                formatted = formatted[:1900] + "\n..."
-            await ctx.send(f"Quotes:\n```{formatted}```", ephemeral=True)
-            app_ctx.logger.info("Admin %s listed quotes.", ctx.author)
+            return
+
+        paginator = QuotePaginator(quotes, per_page=10)
+        view = paginator if paginator.max_page() > 1 else None
+        await ctx.send(paginator.format_page(), view=view, ephemeral=True)
 
     @commands.command(name="downloadquotes", help="Download quotes (admin only)")
     async def download_quotes(self, ctx: commands.Context):
@@ -107,7 +106,7 @@ class QuoteCog(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
         # Log every incoming message (use debug level to avoid spamming production logs)
-        app_ctx.logger.debug("on_message triggered with message: %s (author: %s)", message.content, message.author)
+        app_ctx.logger.info("on_message triggered with message: %s (author: %s)", message.content, message.author)
 
         # Skip bot messages
         if message.author.bot:

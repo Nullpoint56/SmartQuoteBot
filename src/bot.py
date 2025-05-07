@@ -12,7 +12,7 @@ bot = commands.Bot(command_prefix=app_ctx.config.bot.command_prefix, intents=int
 
 async def load_extensions():
     try:
-        await bot.load_extension("src.cogs.quotes")
+        await bot.load_extension("src.discord_bot.cogs.quotes")
         app_ctx.logger.info("Loaded extension: cogs.quotes")
     except Exception:
         app_ctx.logger.exception("Failed to load extension: cogs.quotes")

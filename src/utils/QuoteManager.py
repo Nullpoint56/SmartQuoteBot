@@ -13,20 +13,10 @@ class QuoteManager:
 
     def add_quote(self, text: str):
         embedding: NDArray[np.float32] = self.embedder.embed([text])
-        self.vector_store.add(embeddings=embedding, metadatas=[{"text": text, "label": "quote"}])
+        self.vector_store.add(embeddings=embedding, texts=[text])
 
-    def remove_quote(self, index: int):
-        quotes = self.list_quotes()
-        if not (0 <= index < len(quotes)):
-            raise IndexError("Invalid quote index")
-        id_to_delete = quotes[index]["id"]
-        self.vector_store.delete(id_to_delete)
-
-    def list_quotes(self) -> List[Dict]:
-        # Dummy embedding to list everything (can be replaced with SQL scan later)
-        # For now, fetch more than enough to simulate "list all"
-        all_results = self.vector_store.search(self.embedder.embed(["dummy"]), top_n=1000)
-        return all_results
+    def remove_quote_by_id(self, quote_id: int):
+        self.vector_store.delete(quote_id)
 
     def query(self, text: str, top_n: int = 1, threshold: float = None, metric: str = "cosine") -> List[Dict]:
         embedding: NDArray[np.float32] = self.embedder.embed([text])
@@ -39,4 +29,7 @@ class QuoteManager:
 
     def count_quotes(self) -> int:
         return self.vector_store.count()
+
+    def list_quotes(self)-> List[Dict]:
+        return self.vector_store.list_all()
 
