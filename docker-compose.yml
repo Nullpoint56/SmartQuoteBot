@@ -5,6 +5,9 @@ services:
     image: thomas934/rodof-bot:latest
     container_name: rodofbot
     environment:
+      # App environment
+      - ENV=${ENV}  # or dev in your dev docker-compose override
+
       # Bot
       - BOT__TOKEN=${BOT__TOKEN}
       - BOT__COMMAND_PREFIX=${BOT__COMMAND_PREFIX}
@@ -43,6 +46,7 @@ services:
       POSTGRES_PASSWORD: ${VECTOR_STORE__PASSWORD}
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./enable_pgvector_extension.sql:/docker-entrypoint-initdb.d/enable_pgvector_extension.sql:ro # Enable PGVector
 
 volumes:
   pgdata:

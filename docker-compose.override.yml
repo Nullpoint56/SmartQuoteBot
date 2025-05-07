@@ -9,14 +9,11 @@ services:
     container_name: rodofbot
     volumes:
       - ./src:/app/src  # live reloadable code
-    environment:
-      - .env
     depends_on:
       - pgvector
     command: ["python", "-m", "src.bot"]
-
   pgvector:
-    image: pgvector/pgvector
+    image: pgvector/pgvector:pg16
     container_name: pgvector
     restart: unless-stopped
     environment:
@@ -25,8 +22,8 @@ services:
       POSTGRES_PASSWORD: ${VECTOR_STORE__PASSWORD}
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./enable_pgvector_extension.sql:/docker-entrypoint-initdb.d/enable_pgvector_extension.sql:ro # Enable PGVector
     ports:
       - "5432:5432"
-
 volumes:
   pgdata:
