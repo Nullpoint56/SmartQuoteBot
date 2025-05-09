@@ -35,6 +35,8 @@ class VectorStoreSettings(BaseModel):
     user: str = Field(default="myuser")
     password: str = Field(default="mypassword")
     dimension: int = Field(default=384)
+    metric: str = Field(default="cosine")
+    threshold: float = Field(default=0.5)
 
 
 class EmbedderSettings(BaseModel):
