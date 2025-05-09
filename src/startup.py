@@ -85,6 +85,7 @@ class AppContext:
                 password=cfg.password,
             )
             self.vector_store = PgVectorStore(connection=conn, dimension=cfg.dimension)
+            self.vector_store.ensure_vectors_table(dimension=cfg.dimension)
             self.logger.info("Vector store initialized")
         except Exception as e:
             self.logger.error("Failed to initialize vector store", exc_info=e)
@@ -100,6 +101,7 @@ class AppContext:
             vector_store=self.vector_store,
             embedder=self.embedder,
         )
+
 
 # Singleton-style access
 app_ctx = AppContext()
