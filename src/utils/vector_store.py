@@ -1,7 +1,8 @@
-from typing import  List, Dict
+from typing import List, Dict
+
+from numpy import ndarray
 from psycopg import Connection, sql
 from psycopg.rows import dict_row
-from numpy import ndarray
 
 
 class PgVectorStore:
@@ -65,7 +66,7 @@ class PgVectorStore:
         with self.conn.cursor(row_factory=dict_row) as cur:
             cur.execute(
                 f"""
-                SELECT id, text, embedding {operator} %s AS distance
+                SELECT id, text, embedding {operator} %s::vector AS distance
                 FROM vectors
                 ORDER BY distance
                 LIMIT %s
@@ -76,7 +77,6 @@ class PgVectorStore:
 
         if threshold is not None:
             rows = [row for row in rows if row["distance"] <= threshold]
-
         return [
             {"id": row["id"], "text": row["text"], "distance": row["distance"]}
             for row in rows
@@ -88,7 +88,8 @@ class PgVectorStore:
         with self.conn.cursor() as cur:
             cur.execute(
                 """
-                DELETE FROM vectors
+                DELETE
+                FROM vectors
                 WHERE id = %s
                 """,
                 (id_,)
@@ -128,8 +129,3 @@ class PgVectorStore:
         with self.conn.cursor(row_factory=dict_row) as cur:
             cur.execute("SELECT id, text FROM vectors ORDER BY id")
             return cur.fetchall()
-
-
-
-
-
