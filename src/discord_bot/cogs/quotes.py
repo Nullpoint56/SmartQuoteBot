@@ -5,6 +5,7 @@ from io import BytesIO
 from discord import Message, File
 from discord.ext import commands
 
+from src.discord_bot.cogs.utils import clean_message_from_mentions
 from src.discord_bot.ui import QuotePaginator
 from src.startup import app_ctx
 
@@ -108,7 +109,7 @@ class QuoteCog(commands.Cog):
         content = message.content.strip()
         author = message.author
 
-        app_ctx.logger.info("on_message triggered with message: %s (author: %s)", content, author)
+        app_ctx.logger.debug("on_message triggered with message: %s (author: %s)", content, author)
 
         if author.bot:
             app_ctx.logger.debug("Message is from a bot. Ignoring.")
@@ -119,9 +120,10 @@ class QuoteCog(commands.Cog):
             return
 
         try:
-            app_ctx.logger.info("Running similarity search for: %s", content)
+            content = clean_message_from_mentions(message)
+            app_ctx.logger.debug("Running similarity search for: %s", content)
             results = app_ctx.quote_manager.query(content, top_n=1, threshold=0.5, metric="cosine")
-            app_ctx.logger.info("Similarity search results: %s", results)
+            app_ctx.logger.debug("Similarity search results: %s", results)
         except Exception as e:
             app_ctx.logger.exception("Error during quote_manager query: %s", e)
             return
@@ -129,7 +131,7 @@ class QuoteCog(commands.Cog):
         if results:
             quote = results[0]["text"]
             await message.channel.send(quote)
-            app_ctx.logger.info("Responded to '%s' with quote: %s", content, quote)
+            app_ctx.logger.debug("Responded to '%s' with quote: %s", content, quote)
         elif self.bot.user in message.mentions:
             app_ctx.logger.debug("Bot was mentioned in message: %s", content)
 
