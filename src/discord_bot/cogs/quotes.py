@@ -2,7 +2,7 @@ import json
 import random
 from io import BytesIO
 
-import discord
+from discord import Message, File
 from discord.ext import commands
 
 from src.discord_bot.ui import QuotePaginator
@@ -77,11 +77,11 @@ class QuoteCog(commands.Cog):
             await ctx.send("No quotes available.", ephemeral=True)
             return
 
-        content = json.dumps(quotes, indent=2).encode("utf-8")
+        content = json.dumps(quotes, indent=2, ensure_ascii=False).encode("utf-8")
         buffer = BytesIO(content)
-        buffer.name = "quotes.json"  # Required by discord.File
+        buffer.name = "quotes.json"
 
-        await ctx.send(file=discord.File(buffer), ephemeral=True)
+        await ctx.send(file=File(buffer), ephemeral=True)
 
     @commands.command(name="helpme", help="Show help info for RodofBot")
     async def rodof_help(self, ctx: commands.Context):
@@ -104,38 +104,43 @@ class QuoteCog(commands.Cog):
         await ctx.send("\n".join(text), ephemeral=True)
 
     @commands.Cog.listener()
-    async def on_message(self, message: discord.Message):
-        # Log every incoming message (use debug level to avoid spamming production logs)
-        app_ctx.logger.info("on_message triggered with message: %s (author: %s)", message.content, message.author)
+    async def on_message(self, message: Message):
+        content = message.content.strip()
+        author = message.author
 
-        # Skip bot messages
-        if message.author.bot:
+        app_ctx.logger.info("on_message triggered with message: %s (author: %s)", content, author)
+
+        if author.bot:
             app_ctx.logger.debug("Message is from a bot. Ignoring.")
             return
 
-        # Skip command messages
-        if any(message.content.startswith(prefix) for prefix in COMMAND_PREFIXES):
+        if any(content.startswith(prefix) for prefix in COMMAND_PREFIXES):
             app_ctx.logger.debug("Message starts with a command prefix. Ignoring.")
             return
 
-        # Run semantic query
-        ctx_text = message.content.strip()
-        results = app_ctx.quote_manager.query(ctx_text, top_n=1, threshold=0.5)
+        try:
+            app_ctx.logger.info("Running similarity search for: %s", content)
+            results = app_ctx.quote_manager.query(content, top_n=1, threshold=0.5, metric="cosine")
+            app_ctx.logger.info("Similarity search results: %s", results)
+        except Exception as e:
+            app_ctx.logger.exception("Error during quote_manager query: %s", e)
+            return
 
         if results:
             quote = results[0]["text"]
-            await message.channel.send(f"{quote}")
-            app_ctx.logger.info("Triggered by '%s' -> responded with quote: %s", ctx_text, quote)
+            await message.channel.send(quote)
+            app_ctx.logger.info("Responded to '%s' with quote: %s", content, quote)
         elif self.bot.user in message.mentions:
-            app_ctx.logger.debug("Bot was mentioned in message: %s", ctx_text)
+            app_ctx.logger.debug("Bot was mentioned in message: %s", content)
 
-            if "quote" in ctx_text.lower():
-                results = app_ctx.quote_manager.query(ctx_text, top_n=1, threshold=0.0)
+            if "quote" in content.lower():
+                results = app_ctx.quote_manager.query(content, top_n=1, threshold=0.0)
                 if results:
                     await message.channel.send(results[0]["text"])
                 else:
                     await message.channel.send("No quotes available!")
-            elif "help" in ctx_text.lower():
+
+            elif "help" in content.lower():
                 await message.channel.send("Try `!helpme` for a list of commands!")
 
 
