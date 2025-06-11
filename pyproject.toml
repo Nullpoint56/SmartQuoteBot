@@ -11,5 +11,11 @@ dependencies = [
     "pydantic-settings==2.9.1",
     "sentence-transformers==4.1.0",
     "sentry-sdk==2.26.1",
-    "torch==2.6.0",
+    "torch==2.6.0+cpu",
 ]
+
+[tool.uv]
+extra-index-url = ["https://download.pytorch.org/whl/cpu"]
+
+[tool.uv.scripts]
+up = "python scripts/dev_up.py"
