@@ -2,7 +2,9 @@
 import os
 import subprocess
 import sys
-from scripts.utils import sanitize_branch_name
+
+from utils import sanitize_branch_name
+
 
 def get_default_branch_tag():
     try:
