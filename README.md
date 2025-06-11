@@ -60,21 +60,36 @@ Or pull the prebuilt image from [Docker Hub](https://hub.docker.com/r/thomas934/
 
 ---
 
-## 🛠️ Development Setup
+## 🧑‍💻 Local Development with `uv`
 
-1. Install dependencies:
+[`uv`](https://github.com/astral-sh/uv) is a fast Python package manager that replaces pip and pip-tools. This project uses `uv` exclusively to manage dependencies.
+
+### 1. Install `uv`
+
+#### 🖥️ Windows (via winget)
 
 ```bash
-pip install -r requirements.txt
+winget install --id=astral-sh.uv -e
 ```
 
-2. Run the bot locally:
+#### 🌍 macOS / Linux / Other Platforms
+
+Follow the official standalone installer instructions:
+[https://docs.astral.sh/uv/getting-started/installation/#standalone-installer](https://docs.astral.sh/uv/getting-started/installation/#standalone-installer)
+
+### 2. Install project dependencies
+
+```bash
+uv pip install
+```
+
+> This reads directly from `pyproject.toml` and `uv.lock` to create a reproducible environment.
+
+### 3. Run the bot locally
 
 ```bash
 python bot.py
 ```
-
-> **Note**: Python 3.10+ is required.
 
 ---
 

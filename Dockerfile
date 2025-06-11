@@ -1,22 +1,34 @@
-# === Base image ===
-FROM python:3.11-slim as base
-
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+# === Builder: install dependencies with uv ===
+FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim AS builder
 
 WORKDIR /app
-COPY requirements.txt .
-RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 
-# === Dev image ===
-FROM base as dev
-# (Optional: install dev tools here)
-# RUN pip install --no-cache-dir debugpy watchdog ipython
-ENV ENV=development
-CMD ["python", "-m", "src.bot"]
+# Copy lockfile and project config
+COPY pyproject.toml uv.lock ./
 
-# === Production image ===
-FROM base as prod
+# Install dependencies only (without app code), use cache mount for speed
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked --no-install-project
+
+# Copy application source and install it
 COPY src/ src/
-ENV ENV=production
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked
+
+# === Final image ===
+FROM python:3.11-slim-bookworm AS final
+
+WORKDIR /app
+
+# Copy venv from builder
+COPY --from=builder /app/.venv /app/.venv
+
+ENV PATH="/app/.venv/bin:$PATH" \
+    ENV=production \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+# Copy just the source code
+COPY src/ src/
+
 CMD ["python", "src/bot.py"]

@@ -9,6 +9,9 @@ services:
     volumes:
       - ./src:/app/src
     environment:
+      - # Runtime environment
+      - ENV=development
+
       # Bot config
       - BOT__TOKEN=${BOT__TOKEN}
       - BOT__COMMAND_PREFIX=${BOT__COMMAND_PREFIX}
