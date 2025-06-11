@@ -5,7 +5,7 @@ services:
     build:
       context: .
       target: dev
-    image: rodofbot:dev
+    image: thomas934/smart-quote-bot:${IMAGE_TAG}
     volumes:
       - ./src:/app/src
     environment:

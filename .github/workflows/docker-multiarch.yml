@@ -2,8 +2,9 @@ name: Build & Push Multi-Arch Docker Image
 
 on:
   push:
-    branches: [ master ]
-
+    branches:
+      - master
+      - dev
   workflow_dispatch:
 
 jobs:
@@ -27,15 +28,27 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push Docker image (branch tag)
+      - name: Set image tag based on branch
+        id: tag
+        run: |
+          BRANCH="${GITHUB_REF_NAME}"
+          if [[ "$BRANCH" == "master" || "$BRANCH" == "dev" ]]; then
+            TAG="sha-${GITHUB_SHA::7}"
+          else
+            TAG="${BRANCH//\//-}"  # sanitize branch name
+          fi
+          echo "TAG=$TAG" >> $GITHUB_ENV
+          echo "Resolved tag: $TAG"
+
+      - name: Build and push Docker image (main tag)
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
           platforms: linux/amd64,linux/arm64
-          tags: ${{ env.IMAGE_NAME }}:${{ github.ref_name }}
+          tags: ${{ env.IMAGE_NAME }}:${{ env.TAG }}
 
-      - name: Also tag and push :latest if master branch
+      - name: Also tag and push :latest if master
         if: github.ref_name == 'master'
         uses: docker/build-push-action@v5
         with:

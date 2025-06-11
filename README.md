@@ -85,13 +85,23 @@ uv pip install
 
 > This reads directly from `pyproject.toml` and `uv.lock` to create a reproducible environment.
 
-### 3. Run the bot locally
+### 3. Run the development container with your current Git branch tag
+
+Use the provided script to build and run the dev container based on the current Git branch:
 
 ```bash
-python bot.py
+uv run up
 ```
 
----
+This will:
+
+* Sanitize your current Git branch name (e.g., `feature/login` → `feature-login`)
+* Use it as the image tag (e.g., `thomas934/smart-quote-bot:feature-login`)
+* Inject that tag into `docker-compose.override.yml`
+* Start the container with live code mounting and logs
+
+> 💡 **Note**: If you're not on the `master` or `dev` branch, the image will be tagged using your current branch name.
+
 
 ## 📦 Building for ARM64 (Orange Pi, Raspberry Pi)
 
