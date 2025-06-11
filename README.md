@@ -90,18 +90,20 @@ uv pip install
 Use the provided script to build and run the dev container based on the current Git branch:
 
 ```bash
-uv run up
+uv run python scripts/dev_up.py
 ```
 
 This will:
 
-* Sanitize your current Git branch name (e.g., `feature/login` → `feature-login`)
+* Ask for your current branch name (e.g. `feature/login`)
+* Sanitize the given Git branch name (e.g., `feature/login` → `feature-login`)
 * Use it as the image tag (e.g., `thomas934/smart-quote-bot:feature-login`)
 * Inject that tag into `docker-compose.override.yml`
 * Start the container with live code mounting and logs
 
 > 💡 **Note**: If you're not on the `master` or `dev` branch, the image will be tagged using your current branch name.
 
+---
 
 ## 📦 Building for ARM64 (Orange Pi, Raspberry Pi)
 
