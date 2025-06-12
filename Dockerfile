@@ -17,11 +17,11 @@ COPY src/ src/
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked
 
-# Cleanup to reduce size
+# === Cleanup to reduce image size ===
 RUN rm -rf /app/.venv/lib/python*/site-packages/**/*.dist-info \
     && rm -rf /app/.venv/lib/python*/site-packages/**/__pycache__ \
-    && find /app/.venv -name '*.pyc' -delete \
-    && uv pip cache purge
+    && find /app/.venv -name '*.pyc' -delete
+
 
 # === Final minimal image ===
 FROM --platform=$TARGETPLATFORM python:3.11-slim-bookworm AS final

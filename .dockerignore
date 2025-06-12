@@ -1,9 +1,27 @@
+# Ignore local environment artifacts
+.venv/
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 *.log
 *.sqlite3
+.env
+*.env
+
+# Ignore editor/IDE/project files
 .vscode/
 .idea/
-.env
+.git/
+.gitignore
+
+# Ignore documentation and extras (if not needed in final image)
+docs/
+ai_processing/  # Ignore only if not used in Docker builds
+.github/
+scripts/
+
+# Ignore Docker orchestration files (used only by host)
+docker-compose.override.yml
+docker-compose.yml
+dummy.env
