@@ -121,10 +121,6 @@ class QuoteCog(commands.Cog):
             app_ctx.logger.debug("Message starts with a command prefix. Ignoring.")
             return
 
-        # Save the message for collection
-        app_ctx.collector.save_message(message.content.strip())
-        app_ctx.logger.debug("Saved message content: %s", message.content.strip())
-
         # Run semantic query
         ctx_text = message.content.strip()
         results = app_ctx.quote_search.query(ctx_text, top_n=1, threshold=0.5)
