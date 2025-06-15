@@ -24,7 +24,7 @@ RUN rm -rf /app/.venv/lib/python*/site-packages/**/*.dist-info \
 
 
 # === Final minimal image ===
-FROM --platform=$TARGETPLATFORM python:3.11-slim-bookworm AS final
+FROM python:3.11-slim-bookworm AS final
 
 WORKDIR /app
 
@@ -33,6 +33,7 @@ COPY --from=builder /app/.venv /app/.venv
 
 # Set up environment
 ENV PATH="/app/.venv/bin:$PATH" \
+    PYTHONPATH="/app/src" \
     ENV=production \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
