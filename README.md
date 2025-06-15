@@ -1,15 +1,14 @@
 # SmartQuoteBot
 
-SmartQuoteBot is a lightweight, intelligent Discord bot that listens for user messages, detects certain topics, and responds with a relevant quote from a curated database.  
-Built for **efficiency**, **on-device AI inference**, and **minimal hosting costs**, it is designed to run smoothly even on low-power devices like the **Orange Pi 3B**.
+SmartQuoteBot is a lightweight, intelligent Discord bot that listens for user messages and responds with a relevant quote from a bot managed, extendible database.
+Built for **efficiency** and **minimal hosting costs**, it is designed to run smoothly even on low-power devices like the **Orange Pi 3B**.
 
 ---
 
 ## ✨ Features
 
-- 🌟 **Lightweight AI detection**: Filters messages using a fast, on-device text classifier.
 - 🔎 **Semantic quote matching**: Finds quotes similar to the message meaning when a topic match is detected.
-- ⚡ **Low resource usage**: Optimized for ARM64 systems with optional RKNN NPU acceleration support.
+- ⚡ **Low resource usage**: Optimized for ARM64 systems
 - 🛠️ **Easy deployment**: Docker-based setup with multi-architecture builds (`linux/amd64` and `linux/arm64`).
 
 ---
@@ -45,7 +44,7 @@ docker build -t smartquotebot .
 docker run --env-file .env smartquotebot
 ```
 
-Or pull the prebuilt image from [Docker Hub](https://hub.docker.com/r/thomas934/rodof-bot).
+Or pull the prebuilt image from [Docker Hub](https://hub.docker.com/r/thomas934/smart-quote-bot).
 
 ---
 
@@ -53,8 +52,7 @@ Or pull the prebuilt image from [Docker Hub](https://hub.docker.com/r/thomas934/
 
 | Component        | Description |
 |------------------|-------------|
-| **Classifier**    | Filters messages that may relate to specific topics such as "alcohol" or "suffering". |
-| **Semantic Search** | Selects the most contextually relevant quote from a pre-tagged quote dataset. |
+| **Semantic Search** | Selects the most contextually relevant quote from a quote dataset. |
 | **Discord Bot**   | Listens for messages, applies the classifier, and sends back appropriate responses. |
 | **Docker Support** | Multi-platform builds for both x86 and ARM64 architectures. |
 
@@ -105,7 +103,8 @@ Alternatively, use the provided GitHub Actions workflow to auto-publish multi-ar
 
 - [ ] Implement a custom classifier for improved detection
 - [ ] Add support for slash commands (`/quote`)
-- [ ] Enable customizable quote sets
+- [ ] Add RKNN NPU acceleration
+- [ ] Refactor code to be more modular, robust and extendible
 
 ---
 
@@ -118,6 +117,6 @@ This project is licensed under the [MIT License](LICENSE).
 ## ❤️ Acknowledgements
 
 - [discord.py](https://github.com/Rapptz/discord.py) — Discord API library
-- [scikit-learn](https://scikit-learn.org/) — Lightweight machine learning toolkit
-- [sentence-transformers](https://www.sbert.net/) — Semantic similarity search
+- [sentence-transformers](https://www.sbert.net/) — Model inference backend library
+- [faiss](https://github.com/facebookresearch/faiss) — Efficient smiliraity search library
 
