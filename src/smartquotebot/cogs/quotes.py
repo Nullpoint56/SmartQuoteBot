@@ -1,8 +1,9 @@
 import random
-import discord
+
 from discord.ext import commands
-from discord import File
-from startup import app_ctx
+from discord import File, Message, Forbidden
+
+from smartquotebot.startup import app_ctx
 
 COMMAND_PREFIXES = ("!quote", "!addquote", "!removequote", "!listquotes", "!downloadquotes", "!helpme")
 
@@ -78,7 +79,7 @@ class QuoteCog(commands.Cog):
         try:
             await ctx.send(file=File(app_ctx.quote_search.json_path, filename="quotes.json"), ephemeral=True)
             app_ctx.logger.info("Admin %s downloaded the quotes file.", ctx.author)
-        except discord.Forbidden:
+        except Forbidden:
             await ctx.send("Couldn't send file. Check bot permissions.", ephemeral=True)
             app_ctx.logger.warning("Admin %s tried to download quotes but file failed.", ctx.author)
         except Exception:
@@ -106,7 +107,7 @@ class QuoteCog(commands.Cog):
         await ctx.send("\n".join(text), ephemeral=True)
 
     @commands.Cog.listener()
-    async def on_message(self, message: discord.Message):
+    async def on_message(self, message: Message):
         # Log every incoming message (use debug level to avoid spamming production logs)
         app_ctx.logger.debug("on_message triggered with message: %s (author: %s)", message.content, message.author)
 

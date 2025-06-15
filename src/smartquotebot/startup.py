@@ -3,11 +3,11 @@ import logging
 import os
 import json
 
-from config import AppConfig
+from smartquotebot.config import AppConfig
 from sentry_sdk.integrations.logging import LoggingIntegration
 import sentry_sdk
 
-from utils.faiss_handler import QuoteSearch
+from smartquotebot.utils.faiss_handler import QuoteSearch
 
 
 class AppContext:
