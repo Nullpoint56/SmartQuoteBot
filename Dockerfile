@@ -40,4 +40,5 @@ ENV PATH="/app/.venv/bin:$PATH" \
 # Copy source
 COPY src/ src/
 
-CMD ["python", "src/bot.py"]
+CMD ["python", "-m", "smartquotebot.bot"]
+
