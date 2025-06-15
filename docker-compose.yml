@@ -1,9 +1,7 @@
-version: "3.9"
-
 services:
-  rodofbot:
-    image: thomas934/rodof-bot:latest
-    container_name: rodofbot
+  smartquotebot:
+    image: thomas934/smart-quote-bot:latest
+    container_name: smartquotebot
     environment:
       # Bot config
       - BOT__TOKEN=${BOT__TOKEN}

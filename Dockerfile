@@ -1,22 +1,28 @@
-# === Base image ===
-FROM python:3.11-slim as base
-
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+# === Base image with uv and Python on the TARGET platform ===
+FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim AS final
 
 WORKDIR /app
-COPY requirements.txt .
-RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 
-# === Dev image ===
-FROM base as dev
-# (Optional: install dev tools here)
-# RUN pip install --no-cache-dir debugpy watchdog ipython
-ENV ENV=development
-CMD ["python", "-m", "src.bot"]
+# Set environment early for consistent installs
+ENV PATH="/app/.venv/bin:$PATH" \
+    PYTHONPATH="/app/src" \
+    ENV=production \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-# === Production image ===
-FROM base as prod
+# Copy only files needed to install dependencies first (enables better caching)
+COPY pyproject.toml uv.lock ./
+
+# Install dependencies and project (on target architecture)
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked
+
+# Remove dist-info and __pycache__ to reduce image size
+RUN rm -rf /app/.venv/lib/python*/site-packages/**/*.dist-info \
+    && rm -rf /app/.venv/lib/python*/site-packages/**/__pycache__ \
+    && find /app/.venv -name '*.pyc' -delete
+
+# Copy source code
 COPY src/ src/
-ENV ENV=production
-CMD ["python", "src/bot.py"]
+
+CMD ["python", "-m", "smartquotebot.bot"]

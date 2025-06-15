@@ -2,20 +2,22 @@ name: Build & Push Multi-Arch Docker Image
 
 on:
   push:
-    branches: [main]
+    branches:
+      - master
+      - dev
   workflow_dispatch:
-    inputs:
-      target:
-        description: 'Build target (dev or prod)'
-        required: false
-        default: 'dev'
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      IMAGE_NAME: thomas934/smart-quote-bot
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          ref: ${{ github.ref_name }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -26,11 +28,33 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push Docker image
+      - name: Set image tag based on branch
+        id: tag
+        run: |
+          BRANCH="${GITHUB_REF_NAME}"
+          if [[ "$BRANCH" == "master" || "$BRANCH" == "dev" ]]; then
+            TAG="sha-${GITHUB_SHA::7}"
+          else
+            TAG="${BRANCH//\//-}"  # sanitize branch name
+          fi
+          echo "TAG=$TAG" >> $GITHUB_ENV
+          echo "Resolved tag: $TAG"
+
+      - name: Build and push Docker image (main tag)
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
           platforms: linux/amd64,linux/arm64
-          target: ${{ github.event.inputs.target || 'dev' }}
-          tags: thomas934/rodof-bot:latest
+          tags: ${{ env.IMAGE_NAME }}:${{ env.TAG }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Also tag and push :latest if master
+        if: github.ref_name == 'master'
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ env.IMAGE_NAME }}:latest

@@ -1,6 +1,7 @@
 import json
 from typing import List, Union
-from startup import app_ctx
+
+from smartquotebot.startup import app_ctx
 
 
 def load_quotes() -> List[str]:

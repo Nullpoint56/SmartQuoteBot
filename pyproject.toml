@@ -1,0 +1,19 @@
+[project]
+name = "smartquotebot"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+    "discord-py==2.5.2",
+    "faiss-cpu==1.10.0",
+    "numpy==2.2.4",
+    "pydantic==2.11.3",
+    "pydantic-settings==2.9.1",
+    "sentence-transformers==4.1.0",
+    "sentry-sdk==2.26.1",
+    "torch==2.6.0+cpu",
+]
+
+[tool.uv]
+extra-index-url = ["https://download.pytorch.org/whl/cpu"]
+index-strategy = "unsafe-best-match"
