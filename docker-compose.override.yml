@@ -1,16 +1,16 @@
-version: "3.9"
-
 services:
   rodofbot:
     build:
       context: .
       target: dev
-    image: thomas934/smart-quote-bot:${IMAGE_TAG}
+    image: thomas934/smart-quote-bot:feat-introduce-uv
     volumes:
       - ./src:/app/src
+    working_dir: /app
     environment:
-      - # Runtime environment
+      # Runtime environment
       - ENV=development
+      - PYTHONPATH=/app/src
 
       # Bot config
       - BOT__TOKEN=${BOT__TOKEN}
@@ -31,4 +31,4 @@ services:
 
       # AI
       - AI__EMBEDDING_MODEL=${AI__EMBEDDING_MODEL}
-    command: ["python", "-m", "src.bot"]
+    command: ["python", "-m", "smartquotebot.bot"]

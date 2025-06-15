@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   smartquotebot:
     image: thomas934/smart-quote-bot:latest

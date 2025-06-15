@@ -15,13 +15,13 @@ __pycache__/
 .git/
 .gitignore
 
-# Ignore documentation and extras (if not needed in final image)
+# Ignore documentation and extras
 docs/
-ai_processing/  # Ignore only if not used in Docker builds
+ai_processing/
 .github/
 scripts/
 
-# Ignore Docker orchestration files (used only by host)
+# Ignore Docker orchestration files
 docker-compose.override.yml
 docker-compose.yml
 dummy.env
